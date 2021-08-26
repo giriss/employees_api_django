@@ -16,13 +16,22 @@ def index(request: AuthorizedJsonRequest) -> HttpResponse:
         return __create_employee(request)
 
 
-@require_http_methods(['PUT', 'DELETE'])
+@require_http_methods(['GET', 'PUT', 'DELETE'])
 @authenticate_request
 def resource(request: AuthorizedJsonRequest, pk: int) -> HttpResponse:
-    if request.method == 'PUT':
+    if request.method == 'GET':
+        return __show(request, pk)
+    elif request.method == 'PUT':
         return __update(request, pk)
     else:
         return __delete(request, pk)
+
+
+def __show(request: AuthorizedJsonRequest, pk: int) -> HttpResponse:
+    employee = Employee.objects.get(pk=pk)
+    return JsonResponse({
+        'data': model_to_dict(employee)
+    })
 
 
 def __update(request: AuthorizedJsonRequest, pk: int) -> HttpResponse:
