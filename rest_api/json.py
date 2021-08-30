@@ -7,10 +7,13 @@ from django.http.request import HttpRequest
 
 def json_middleware(get_response):
     def middleware(request: HttpRequest):
-        try:
-            request.json = json.loads(request.body)
-        except JSONDecodeError:
-            pass
+        if 'application/json' in request.headers.get('Content-Type', ''):
+            try:
+                request.json = json.loads(request.body)
+            except JSONDecodeError:
+                pass
+        if not hasattr(request, 'json'):
+            request.json = None
         response = get_response(request)
         return response
 

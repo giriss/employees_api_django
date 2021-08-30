@@ -1,6 +1,6 @@
+from django.forms.models import model_to_dict
 from django.http.response import HttpResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
-from django.forms.models import model_to_dict
 
 from rest_api.json import AuthorizedJsonRequest
 from users.auth import authenticate_request
@@ -25,6 +25,32 @@ def resource(request: AuthorizedJsonRequest, pk: int) -> HttpResponse:
         return __update(request, pk)
     else:
         return __delete(request, pk)
+
+
+@require_http_methods(['POST', 'DELETE'])
+@authenticate_request
+def picture(request: AuthorizedJsonRequest, pk: int) -> HttpResponse:
+    if request.method == 'POST':
+        return __put_picture(request, pk)
+    else:
+        return __delete_picture(request, pk)
+
+
+def __put_picture(request: AuthorizedJsonRequest, pk: int) -> HttpResponse:
+    pic = request.FILES.get('picture')
+    emp = Employee.objects.get(pk=pk)
+    emp.set_picture(pic)
+    return JsonResponse({
+        'data': model_to_dict(emp),
+    })
+
+
+def __delete_picture(request: AuthorizedJsonRequest, pk: int) -> HttpResponse:
+    emp = Employee.objects.get(pk=pk)
+    emp.del_picture()
+    return JsonResponse({
+        'data': model_to_dict(emp),
+    })
 
 
 def __show(request: AuthorizedJsonRequest, pk: int) -> HttpResponse:

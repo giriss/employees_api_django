@@ -1,3 +1,4 @@
+from typing import Union
 from django.db.models import ObjectDoesNotExist
 from django.db.utils import IntegrityError
 from django.http.response import HttpResponse, JsonResponse
@@ -30,15 +31,20 @@ def login(request: AuthorizedJsonRequest) -> HttpResponse:
             return gen_response(user.gen_token())
     except ObjectDoesNotExist:
         pass
-    return JsonResponse({
-        'errors': ['Invalid username or password'],
-    })
+    return JsonResponse(
+        data={
+            'errors': {
+                'username/password': 'Invalid username or password',
+            },
+        },
+        status=401,
+    )
 
 
-def gen_response(access_token: dict) -> JsonResponse:
+def gen_response(access_token: dict[str, Union[str, int]]) -> JsonResponse:
     return JsonResponse({
         'data': {
             'access_token': access_token['token'],
-            'exp': access_token['exp'],
+            'expiry': access_token['exp'],
         },
     })
